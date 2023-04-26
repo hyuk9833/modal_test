@@ -7,13 +7,41 @@ function App() {
   // useState를 사용하여 open상태를 변경한다. (open일때 true로 만들어 열리는 방식)
   const [modalOpen, setModalOpen] = useState(false);
   const [text,setText] = useState("테스트");
+  const [time,setTime] = useState("05:00");
+
   const openModal = () => {
     setModalOpen(true);
+    timer();
   };
   const closeModal = () => {
     setModalOpen(false);
   };
-  
+  const timer = async () => {
+    const countDownSeconds = 10;
+    let startTime = new Date().getTime()+countDownSeconds*1000;
+    function updateTimer(){
+      let currentTime = new Date().getTime();
+      let difference = startTime - currentTime;
+
+      // 차이가 양수인 경우, 남은 시간을 계산하고 출력합니다.
+      if (difference >= 0) {
+        let minutes = Math.floor(difference / (1000 * 60));
+        let seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        // 남은 시간을 00:00 형태로 포맷합니다.
+        let formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        // 남은 시간을 출력합니다.
+        setTime(formattedTime);
+      }else {
+        clearInterval(timerInterval);
+        closeModal();
+        alert("시간이 만료되었습니다.");
+        console.log("타이머 종료");
+      }
+    }  
+    let timerInterval = setInterval(updateTimer, 1000);  
+  };
   const handleButtonClick = async () => {
     const walletAddress = "0x437782D686Bcf5e1D4bF1640E4c363Ab70024FBC"; // replace with your wallet address
     const apiKey = "replace with your EtherScan API Key"; // replace with your Etherscan API key
@@ -49,6 +77,7 @@ function App() {
       <Modal open={modalOpen} close={closeModal} header="Modal heading">
         <QrGenerator number="0001" name="abc" price="30000" platformname="nangnang"/>
         <div>{text}</div>
+        <div>{time}</div>
         <button onClick={handleButtonClick}> 가져오기</button>
       </Modal>
     </React.Fragment>
