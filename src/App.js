@@ -17,12 +17,17 @@ function App() {
     setModalOpen(false);
   };
   const timer = async () => {
-    const countDownSeconds = 10;
+    const countDownSeconds = 300; //타이머 시작 시간
     let startTime = new Date().getTime()+countDownSeconds*1000;
-    function updateTimer(){
+    function checktx(){
+      if(handleButtonClick()){
+        closeModal();
+        alert("결제 완료되었습니다.");
+        clearInterval(timerInterval);
+      }
       let currentTime = new Date().getTime();
       let difference = startTime - currentTime;
-
+      
       // 차이가 양수인 경우, 남은 시간을 계산하고 출력합니다.
       if (difference >= 0) {
         let minutes = Math.floor(difference / (1000 * 60));
@@ -40,16 +45,20 @@ function App() {
         console.log("타이머 종료");
       }
     }  
-    let timerInterval = setInterval(updateTimer, 1000);  
+    let timerInterval = setInterval(checktx, 1000);  
   };
   const handleButtonClick = async () => {
     const walletAddress = "0x437782D686Bcf5e1D4bF1640E4c363Ab70024FBC"; // replace with your wallet address
-    const apiKey = "replace with your EtherScan API Key"; // replace with your Etherscan API key
+    const apiKey = "replace with your Etherscan API key"; // replace with your Etherscan API key
     const data = await getWalletTransaction(walletAddress, apiKey);
-    setText(`Your last Transaction is ${data}`);
+    if(data==0.00002){
+      return true;
+    }else{
+      return false;
+    }
   }
   const getWalletTransaction = async (walletAddress, apiKey) => {
-      const response = await axios.get(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${apiKey}`).catch(error => {
+      const response = await axios.get(`https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${apiKey}`).catch(error => {
         if (error.response) {
           // 요청이 이루어졌으며 서버가 2xx의 범위를 벗어나는 상태 코드로 응답했습니다.
           console.log(error.response.data)
@@ -67,8 +76,9 @@ function App() {
         console.log(error.config)
       });
       const gasprice = response.data.result;
-      console.log(gasprice[0].hash);
-      return gasprice;
+      console.log(gasprice);
+      const balanceInEth = gasprice.at(-1).value / 10 ** 18;
+      return balanceInEth;
   }
   return (
     <React.Fragment>
